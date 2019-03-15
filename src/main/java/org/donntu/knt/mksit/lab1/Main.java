@@ -1,14 +1,24 @@
 package org.donntu.knt.mksit.lab1;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
-
 public class Main {
-    public static void main(String[] args) throws FileNotFoundException {
-        Scanner scanner = new Scanner(new File("input.txt"));
+    public static void main(String[] args) throws Exception {
+        String text = FileReader.readFile("input.txt");
+        System.out.println("--------------------");
+        System.out.println("Text: ");
+        System.out.println(text);
+
+        System.out.println("--------------------");
+
         Huffman huffman = new Huffman();
-        int decision = 1;
-        huffman.handlingDecision(scanner, decision);
+        HuffmanText encode = huffman.encode(text);
+
+        System.out.println("--------------------");
+        System.out.println("Encoded: ");
+
+        System.out.println(encode.getEncoded());
+
+        System.out.println("--------------------");
+        System.out.println("Decoded: ");
+        System.out.println(huffman.decode(encode.getEncoded(), encode.getNodes()));
     }
 }

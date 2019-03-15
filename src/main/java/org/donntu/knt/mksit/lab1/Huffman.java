@@ -1,9 +1,11 @@
 package org.donntu.knt.mksit.lab1;
 
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
 
 public class Huffman {
+
     public String decode(String text, PriorityQueue<Node> nodes) {
         String decoded = "";
         Node node = nodes.peek();
@@ -30,52 +32,46 @@ public class Huffman {
         return decoded;
     }
 
-    private String encode(HuffmanText huffmanText) {
-        calculateCharIntervals(huffmanText.getNodes());
-        buildTree(huffmanText.getNodes());
-        generateCodes(huffmanText.getNodes().peek(), "");
+    public HuffmanText encode(String text) {
+        HuffmanText huffmanText = new HuffmanText();
 
-        printCodes();
-        String decoded = huffmanText.getDecoded();
+        calculateCharIntervals(text, huffmanText);
+        buildTree(huffmanText);
+        generateCodes(huffmanText.getNodes().peek(), huffmanText.getCodes(), "");
+
         String encoded = "";
         TreeMap<Character, String> codes = huffmanText.getCodes();
-        for (int i = 0; i < decoded.length(); i++) {
-            encoded = encoded.concat(codes.get(decoded.charAt(i)));
+        for (int i = 0; i < text.length(); i++) {
+            encoded = encoded.concat(codes.get(text.charAt(i)));
         }
-        return encoded;
-    }
 
-    private boolean clear() {
-
-
-
-        return false;
-
+        huffmanText.setEncoded(encoded);
+        return huffmanText;
     }
 
 
-    private void buildTree(PriorityQueue<Node> vector) {
-        while (vector.size() > 1) {
-            vector.add(new Node(vector.poll(), vector.poll()));
+    private void buildTree(HuffmanText huffmanText) {
+        PriorityQueue<Node> nodes = huffmanText.getNodes();
+        while (nodes.size() > 1) {
+            nodes.add(new Node(nodes.poll(), Objects.requireNonNull(nodes.poll())));
         }
     }
 
-    private void printCodes() {
-        System.out.println("--- Printing Codes ---");
+    public void printCodes(TreeMap<Character, String> codes) {
         codes.forEach((k, v) -> System.out.println("'" + k + "' : " + v));
     }
 
-    private void calculateCharIntervals(PriorityQueue<Node> vector) {
-        System.out.println("-- intervals --");
+    private void calculateCharIntervals(String text, HuffmanText huffmanText) {
         int[] ASCII = new int[128];
         for (int i = 0; i < text.length(); i++) {
             ASCII[text.charAt(i)]++;
         }
-
+        PriorityQueue<Node> nodes = huffmanText.getNodes();
         for (int i = 0; i < ASCII.length; i++) {
             if (ASCII[i] > 0) {
-                vector.add(new Node(ASCII[i] / (text.length() * 1.0), ((char) i) + ""));
-                System.out.println("'" + ((char) i) + "' : " + ASCII[i] / (text.length() * 1.0));
+                double value = ASCII[i] / (text.length() * 1.0);
+                nodes.add(new Node(value, ((char) i) + ""));
+                System.out.println("'" + String.valueOf(((char) i)).replaceAll("\n", "\\n") + "' : " + value);
             }
         }
     }
