@@ -2,7 +2,7 @@ package org.donntu.knt.mksit.lab1;
 
 import java.util.*;
 
-public class HuffmanMy {
+public class HuffmanCompressor {
 
     public static CompressedText compress(String text) {
         PriorityQueue<Node> nodes = new PriorityQueue<>(
@@ -42,18 +42,15 @@ public class HuffmanMy {
                             left,
                             Objects.requireNonNull(right)));
         }
-
-        TreeMap<Character, String> codes = new TreeMap<>();
+        Map<Character, String> codes = new HashMap<>();
 
         Node node = nodes.poll();
         generateCodes(node, codes, "");
-
-        String encoded = "";
+        StringBuilder encoded = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
-            encoded = encoded.concat(codes.get(text.charAt(i)));
+            encoded.append(codes.get(text.charAt(i)));
         }
-
-        return new CompressedText(node, codes, encoded);
+        return new CompressedText(node, codes, encoded.toString());
     }
 
     public static String decompress(CompressedText compressedText) {
@@ -65,14 +62,14 @@ public class HuffmanMy {
         for (char c : chars) {
             compressed.addLast(c);
         }
-        String decompressedText = "";
+        StringBuilder decompressedText = new StringBuilder();
         while (!compressed.isEmpty()) {
-            decompressedText = decompressedText.concat(
-                    String.valueOf(getCharacterFromCode(compressed, tree))
+            decompressedText.append(
+                    getCharacterFromCode(compressed, tree)
             );
         }
 
-        return decompressedText;
+        return decompressedText.toString();
     }
 
     private static Character getCharacterFromCode(Queue<Character> compressed, Node tree) {
@@ -91,7 +88,7 @@ public class HuffmanMy {
         }
     }
 
-    private static void generateCodes(Node node, TreeMap<Character, String> codes, String s) {
+    private static void generateCodes(Node node, Map<Character, String> codes, String s) {
         if (node != null) {
             if (node.getRight() != null) {
                 generateCodes(node.getRight(), codes, s + "1");

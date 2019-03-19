@@ -1,15 +1,20 @@
 package org.donntu.knt.mksit.lab1;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        String text = "ЛОЛКЕК";
+        String text = FileService.readFile("v.bmp");
 
-        CompressedText compressedText = HuffmanMy.compress(text);
+        CompressedText compressedText = HuffmanCompressor.compress(text);
 
-        System.out.println(compressedText.getCompressedText());
+        compressedText.printCodes();
 
-        System.out.println(HuffmanMy.decompress(compressedText));
+        FileService.writeFile(compressedText.getCompressedText(), "compressed.bin");
+
+        String decompress = HuffmanCompressor.decompress(compressedText);
+
+
+        FileService.writeFile(decompress, "decompressed.bmp");
 
     }
 }
