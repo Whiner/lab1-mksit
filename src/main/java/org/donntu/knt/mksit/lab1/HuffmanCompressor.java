@@ -53,6 +53,22 @@ public class HuffmanCompressor {
         return new CompressedText(node, codes, encoded.toString());
     }
 
+    private static void generateCodes(Node node, Map<Character, String> codes, String s) {
+        if (node != null) {
+            if (node.getRight() != null) {
+                generateCodes(node.getRight(), codes, s + "1");
+            }
+
+            if (node.getLeft() != null) {
+                generateCodes(node.getLeft(), codes, s + "0");
+            }
+
+            if (node.getLeft() == null && node.getRight() == null) {
+                codes.put(node.getCharacter(), s);
+            }
+        }
+    }
+
     public static String decompress(CompressedText compressedText) {
         Node tree = compressedText.getTree();
         String text = compressedText.getCompressedText();
@@ -88,19 +104,4 @@ public class HuffmanCompressor {
         }
     }
 
-    private static void generateCodes(Node node, Map<Character, String> codes, String s) {
-        if (node != null) {
-            if (node.getRight() != null) {
-                generateCodes(node.getRight(), codes, s + "1");
-            }
-
-            if (node.getLeft() != null) {
-                generateCodes(node.getLeft(), codes, s + "0");
-            }
-
-            if (node.getLeft() == null && node.getRight() == null) {
-                codes.put(node.getCharacter(), s);
-            }
-        }
-    }
 }

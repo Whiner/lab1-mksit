@@ -1,4 +1,4 @@
-package org.donntu.knt.mksit.lab1;
+package org.donntu.knt.mksit.lab1.v2;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -6,15 +6,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Node implements Comparable<Node> {
     private String name;
-    private char character;
+    private byte _byte;
     private int count;
     private Node left;
     private Node right;
 
-    public Node(char character, int count) {
+    public Node(byte _byte, int count) {
         this.count = count;
-        this.character = character;
-        this.name = String.valueOf(character);
+        this._byte = _byte;
+        this.name = String.valueOf(_byte);
         left = null;
         right = null;
     }
@@ -28,7 +28,7 @@ public class Node implements Comparable<Node> {
             this.right = left;
             this.left = right;
         }
-        name = this.left.name + this.right.name;
+        name = this.left.name + "'" + this.right.name;
     }
 
     @Override
