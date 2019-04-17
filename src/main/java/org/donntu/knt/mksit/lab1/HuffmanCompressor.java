@@ -1,59 +1,76 @@
 package org.donntu.knt.mksit.lab1;
 
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.PriorityQueue;
 
 public class HuffmanCompressor {
 
-    public static CompressedText compress(String text) {
-        PriorityQueue<Node> nodes = new PriorityQueue<>(
-                (o1, o2) -> {
-                    if (o1.getCount() > o2.getCount()) {
-                        return 1;
-                    } else if (o1.getCount() == o2.getCount()) {
-                        return 0;
-                    }
-                    return -1;
-                }
-        );
+    public static Node compress(String inputFilename, String outputFilename) {
 
-        char[] chars = text.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (nodes
-                    .stream()
-                    .noneMatch(characterCount ->
-                            c == characterCount.getCharacter())
-            ) {
-                int count = 0;
-                for (int j = i; j < chars.length; j++) {
-                    if (c == chars[j]) {
-                        count++;
+        try (
+                RandomAccessFile file = new RandomAccessFile(inputFilename, "r");
+                BufferedOutputStream bufferedWriter = new BufferedOutputStream(new FileOutputStream(outputFilename))
+        ) {
+
+            PriorityQueue<Node> nodes = new PriorityQueue<>(
+                    (o1, o2) -> {
+                        if (o1.getCount() > o2.getCount()) {
+                            return 1;
+                        } else if (o1.getCount() == o2.getCount()) {
+                            return 0;
+                        }
+                        return -1;
                     }
+            );
+
+            Map<Byte, Integer> byteIntegerMap = new HashMap<>();
+            System.out.println("Считает символы");
+            while (file.getFilePointer() < file.length()) {
+                final byte read = file.readByte();
+                if (nodes
+                        .stream()
+                        .noneMatch(characterCount ->
+                                read == characterCount.get_byte())
+                ) {
+                    byteIntegerMap.merge(read, 1, Integer::sum);
                 }
-                nodes.add(new Node(c, count));
             }
-        }
 
-        while (nodes.size() > 1) {
-            Node left = nodes.poll();
-            Node right = nodes.poll();
-            nodes.add(
-                    new Node(
-                            left,
-                            Objects.requireNonNull(right)));
-        }
-        Map<Character, String> codes = new HashMap<>();
+            byteIntegerMap.forEach((key, value) -> nodes.add(new Node(key, value)));
 
-        Node node = nodes.poll();
-        generateCodes(node, codes, "");
-        StringBuilder encoded = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            encoded.append(codes.get(text.charAt(i)));
+            System.out.println("Формирует дерево");
+            while (nodes.size() > 1) {
+                Node left = nodes.poll();
+                Node right = nodes.poll();
+                nodes.add(new Node(left, Objects.requireNonNull(right)));
+            }
+
+            Map<Byte, String> codes = new HashMap<>();
+
+            Node node = nodes.poll();
+            System.out.println("Генерирует коды");
+            generateCodes(node, codes, "");
+            file.seek(0);
+            System.out.println("Печатает в файл");
+            while (file.getFilePointer() < file.length()) {
+                byte b = file.readByte();
+                bufferedWriter.write(codes.get(b).getBytes());
+            }
+            return node;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-        return new CompressedText(node, codes, encoded.toString());
     }
 
-    private static void generateCodes(Node node, Map<Character, String> codes, String s) {
+
+    private static void generateCodes(Node node, Map<Byte, String> codes, String s) {
         if (node != null) {
             if (node.getRight() != null) {
                 generateCodes(node.getRight(), codes, s + "1");
@@ -64,44 +81,45 @@ public class HuffmanCompressor {
             }
 
             if (node.getLeft() == null && node.getRight() == null) {
-                codes.put(node.getCharacter(), s);
+                codes.put(node.get_byte(), s);
             }
         }
     }
 
-    public static String decompress(CompressedText compressedText) {
-        Node tree = compressedText.getTree();
-        String text = compressedText.getCompressedText();
-
-        char[] chars = text.toCharArray();
-        ArrayDeque<Character> compressed = new ArrayDeque<>();
-        for (char c : chars) {
-            compressed.addLast(c);
+    public static void decompress(String sourceFilename, String destFilename, Node tree) {
+        try (
+                RandomAccessFile reader = new RandomAccessFile(sourceFilename, "r");
+                FileOutputStream writer = new FileOutputStream(destFilename)
+        ) {
+            byte b;
+            while (reader.getFilePointer() < reader.length()) {
+                b = reader.readByte();
+                byte byteFromCode = getByteFromCode(b, tree, reader);
+                writer.write(byteFromCode);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        StringBuilder decompressedText = new StringBuilder();
-        while (!compressed.isEmpty()) {
-            decompressedText.append(
-                    getCharacterFromCode(compressed, tree)
-            );
-        }
 
-        return decompressedText.toString();
     }
 
-    private static Character getCharacterFromCode(Queue<Character> compressed, Node tree) {
-        Character c = compressed.peek();
-        if(c == null) {
-            return tree.getCharacter();
-        }
-        if (c.equals('0') && tree.getLeft() != null) {
-            compressed.poll();
-            return getCharacterFromCode(compressed, tree.getLeft());
-        } else if (c.equals('1') && tree.getRight() != null) {
-            compressed.poll();
-            return getCharacterFromCode(compressed, tree.getRight());
+    private static byte getByteFromCode(Byte character, Node tree, RandomAccessFile reader) throws IOException {
+
+        if (character.equals((byte) 48) && tree.getLeft() != null) {
+            try {
+                return getByteFromCode(reader.readByte(), tree.getLeft(), reader);
+            } catch (IOException e) {
+                return tree.getLeft().get_byte();
+            }
+        } else if (character.equals((byte) 49) && tree.getRight() != null) {
+            try {
+                return getByteFromCode(reader.readByte(), tree.getRight(), reader);
+            } catch (IOException e) {
+                return tree.getRight().get_byte();
+            }
         } else {
-            return tree.getCharacter();
+            reader.seek(reader.getFilePointer() - 1);
+            return tree.get_byte();
         }
     }
-
 }

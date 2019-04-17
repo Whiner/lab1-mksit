@@ -1,27 +1,50 @@
 package org.donntu.knt.mksit.lab1;
 
-import org.donntu.knt.mksit.lab1.v2.HuffmanCompressorV2;
-import org.donntu.knt.mksit.lab1.v2.Node;
+import java.io.File;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        Node tree;
+        String textFilename = "files/file.txt";
+        String compressedTextFilename = "files/file.txt.huff";
+        String decodedTextFilename = "files/file_decoded.txt";
 
-        Node tree = HuffmanCompressorV2.compress("files/file.txt", "files/file.txt.huff");
-        HuffmanCompressorV2.decompress("files/file.txt.huff", "files/file_decoded.txt", tree);
+        System.out.println("Кодирование текстового файла");
+        System.out.println("----------------------------");
+        tree = HuffmanCompressor.compress(textFilename, compressedTextFilename);
+        System.out.println("-------------------------------");
+        System.out.println("Раскодирование текстового файла");
+        System.out.println("-------------------------------");
+        HuffmanCompressor.decompress(compressedTextFilename, decodedTextFilename, tree);
 
+        System.out.println("% компрессии = " + CompressQualifier.compressPercent(
+                new File(textFilename),
+                new File(compressedTextFilename))
+        );
+        System.out.println("Файлы идентичны = " + CompressQualifier.isUncompressedEqualsSource(
+                new File(textFilename),
+                new File(decodedTextFilename))
+        );
 
-       /*String text = FileService.readFile("files/file.txt");
+        String jpgFilename = "files/v.bmp";
+        String compressedJpgFilename = "files/v.bmp.huff";
+        String decodedJpgFilename = "files/v_decoded.bmp";
 
-        CompressedText compressedText = HuffmanCompressor.compress(text);
-        //System.out.println(compressedText.getCompressedText());
-        compressedText.printCodes();*/
+        System.out.println("Кодирование BMP файла");
+        System.out.println("---------------------");
+        tree = HuffmanCompressor.compress(jpgFilename, compressedJpgFilename);
+        System.out.println("------------------------");
+        System.out.println("Раскодирование BMP файла");
+        System.out.println("------------------------");
+        HuffmanCompressor.decompress(compressedJpgFilename, decodedJpgFilename, tree);
 
-      /*  FileService.writeFile(compressedText.getCompressedText(), "compressed.bin");
-
-        String decompress = HuffmanCompressor.decompress(compressedText);
-
-
-        FileService.writeFile(decompress, "decompressed.bmp");*/
-
+        System.out.println("% компрессии = " + CompressQualifier.compressPercent(
+                new File(jpgFilename),
+                new File(compressedJpgFilename))
+        );
+        System.out.println("Файлы идентичны = " + CompressQualifier.isUncompressedEqualsSource(
+                new File(jpgFilename),
+                new File(decodedJpgFilename))
+        );
     }
 }
