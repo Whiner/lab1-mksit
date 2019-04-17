@@ -89,12 +89,13 @@ public class HuffmanCompressorV2 {
     public static void decompress(String sourceFilename, String destFilename, Node tree) {
 
         try (
-                BufferedReader reader = new BufferedReader(new FileReader(sourceFilename));
+                RandomAccessFile reader = new RandomAccessFile(sourceFilename, "r");
                 BufferedWriter writer = new BufferedWriter(new FileWriter(destFilename))
         ) {
             byte b;
             while ((b = (byte) reader.read()) != -1) {
-                writer.write(getByteFromCode(b, tree, reader));
+                byte byteFromCode = getByteFromCode(b, tree, reader);
+                writer.write(byteFromCode);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -102,7 +103,7 @@ public class HuffmanCompressorV2 {
 
     }
 
-    private static byte getByteFromCode(Byte character, Node tree, BufferedReader reader) throws IOException {
+    private static byte getByteFromCode(Byte character, Node tree, RandomAccessFile reader) throws IOException {
         if (character == (byte) -1) {
             return tree.get_byte();
         }
@@ -111,6 +112,7 @@ public class HuffmanCompressorV2 {
         } else if (character.equals((byte) 49) && tree.getRight() != null) {
             return getByteFromCode((byte) reader.read(), tree.getRight(), reader);
         } else {
+            reader.seek(reader.getFilePointer() - 1);
             return tree.get_byte();
         }
     }
