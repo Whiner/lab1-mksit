@@ -25,7 +25,7 @@ public class Main {
                 new File(textFilename),
                 new File(decodedTextFilename))
         );
-
+/*
         String jpgFilename = "files/v.bmp";
         String compressedJpgFilename = "files/v.bmp.huff";
         String decodedJpgFilename = "files/v_decoded.bmp";
@@ -45,6 +45,6 @@ public class Main {
         System.out.println("Файлы идентичны = " + CompressQualifier.isUncompressedEqualsSource(
                 new File(jpgFilename),
                 new File(decodedJpgFilename))
-        );
+        );*/
     }
 }

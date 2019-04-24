@@ -58,9 +58,29 @@ public class HuffmanCompressor {
             generateCodes(node, codes, "");
             file.seek(0);
             System.out.println("Печатает в файл");
-            while (file.getFilePointer() < file.length()) {
+            /*while (file.getFilePointer() < file.length()) {
                 byte b = file.readByte();
                 bufferedWriter.write(codes.get(b).getBytes());
+            }
+*/
+            StringBuilder bits = new StringBuilder();
+            while (file.getFilePointer() < file.length()) {
+                byte b;
+                try{
+                    b = file.readByte();
+                    bits.append(codes.get(b));
+                    if(bits.length() >= 8) {
+                        bufferedWriter.write(Integer.parseInt(bits.substring(0, 8), 2));
+                        bits.delete(0, 8);
+                    }
+                } catch (IOException e) {
+                    int toByte = 8 - bits.length();
+                    for (int i = 0; i < toByte; i++) {
+                        bits.append("0");
+                    }
+                    bufferedWriter.write(Integer.parseInt(bits.toString(), 2));
+                    break;
+                }
             }
             return node;
         } catch (IOException e) {
@@ -82,6 +102,7 @@ public class HuffmanCompressor {
 
             if (node.getLeft() == null && node.getRight() == null) {
                 codes.put(node.get_byte(), s);
+                System.out.println((char)node.get_byte() + " : " + s);
             }
         }
     }
@@ -92,9 +113,13 @@ public class HuffmanCompressor {
                 FileOutputStream writer = new FileOutputStream(destFilename)
         ) {
             byte b;
+            StringBuilder builder = new StringBuilder();
             while (reader.getFilePointer() < reader.length()) {
-                b = reader.readByte();
-                byte byteFromCode = getByteFromCode(b, tree, reader);
+                if(builder.length() == 0) {
+                    b = reader.readByte();
+                    builder.append(BitUtils.byteToBits(b));
+                }
+                byte byteFromCode = getByteFromCode(builder, tree, reader);
                 writer.write(byteFromCode);
             }
         } catch (IOException e) {
@@ -103,22 +128,20 @@ public class HuffmanCompressor {
 
     }
 
-    private static byte getByteFromCode(Byte character, Node tree, RandomAccessFile reader) throws IOException {
+    private static byte getByteFromCode(StringBuilder builder, Node tree, RandomAccessFile reader) throws IOException {
 
-        if (character.equals((byte) 48) && tree.getLeft() != null) {
-            try {
-                return getByteFromCode(reader.readByte(), tree.getLeft(), reader);
-            } catch (IOException e) {
-                return tree.getLeft().get_byte();
-            }
-        } else if (character.equals((byte) 49) && tree.getRight() != null) {
-            try {
-                return getByteFromCode(reader.readByte(), tree.getRight(), reader);
-            } catch (IOException e) {
-                return tree.getRight().get_byte();
-            }
+        if(builder.length() == 0) {
+            byte b = reader.readByte();
+            builder.append(BitUtils.byteToBits(b));
+        }
+
+        if (builder.charAt(0) == '0' && tree.getLeft() != null) {
+            builder.deleteCharAt(0);
+            return getByteFromCode(builder, tree.getLeft(), reader);
+        } else if (builder.charAt(0) == '1' && tree.getRight() != null) {
+            builder.deleteCharAt(0);
+            return getByteFromCode(builder, tree.getRight(), reader);
         } else {
-            reader.seek(reader.getFilePointer() - 1);
             return tree.get_byte();
         }
     }
